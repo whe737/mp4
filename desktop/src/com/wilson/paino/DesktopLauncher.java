@@ -8,8 +8,10 @@ import com.wilson.paino.Paino;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+		config.setWindowedMode(1920,1030);
 		config.setForegroundFPS(60);
 		config.setTitle("Paino");
+		config.useVsync(true);
 		new Lwjgl3Application(new Paino(), config);
 	}
 }

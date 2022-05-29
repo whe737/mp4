@@ -12,6 +12,6 @@ public class DesktopLauncher {
 		config.setForegroundFPS(60);
 		config.setTitle("Paino");
 		config.useVsync(true);
-		new Lwjgl3Application(new Paino(), config);
+		new Lwjgl3Application(new Start(), config);
 	}
 }

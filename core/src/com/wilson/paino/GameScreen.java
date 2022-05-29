@@ -3,6 +3,7 @@ package com.wilson.paino;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
@@ -18,8 +19,10 @@ import com.badlogic.gdx.math.Rectangle;
 
 import org.w3c.dom.Text;
 
-public class Paino extends ApplicationAdapter {
-	private SpriteBatch batch;
+public class GameScreen implements Screen {
+    final Start game;
+
+    private SpriteBatch batch;
 	private	Texture bgImg;
 	private Texture hpBar;
 	private Texture noteImg;
@@ -41,10 +44,10 @@ public class Paino extends ApplicationAdapter {
 	private boolean loading;
 	private long lastDropTime;
 
-	@Override
-	public void create () {
-		//sprites
-		batch = new SpriteBatch();
+    public GameScreen(final Start game)
+    {
+        this.game=game;
+        batch = new SpriteBatch();
 		bgImg = new Texture(Gdx.files.internal("ui//layout.png"));
 		hpBar = new Texture(Gdx.files.internal("ui//HealthBar.png"));
 		noteImg = new Texture(Gdx.files.internal("ui//BlueBox.png"));
@@ -66,9 +69,9 @@ public class Paino extends ApplicationAdapter {
 		initializeMap();
 		noteSpawnList=new ArrayList<Rectangle>();
 		spawnNote();
-	}
-	
-	private void initializeMap() //mean to only be called at create
+    }
+
+    private void initializeMap() //mean to only be called at create
 	{
 		loading=true;
 		notes=map.getNotesList();
@@ -113,9 +116,15 @@ public class Paino extends ApplicationAdapter {
       	lastDropTime = TimeUtils.nanoTime();
 	}
 
-	@Override
-	public void render () {
-		frameCounter++;
+    @Override
+    public void show() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void render(float delta) {
+        frameCounter++;
 		ScreenUtils.clear(0, 0, 0.5f, 1);
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
@@ -144,6 +153,7 @@ public class Paino extends ApplicationAdapter {
 				backingMusic.play();
 				if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
 				{
+					frameCounter=0;
 					durationLeft--;
 					getDurationString();
 					System.out.println(durationLeftString);
@@ -158,17 +168,43 @@ public class Paino extends ApplicationAdapter {
 			{
 				backingMusic.pause();
 			}
-		}
-	}
-	
-	@Override
-	public void dispose () {
-		batch.dispose();
+		}   
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void pause() {
+        backingMusic.pause();
+    }
+
+    @Override
+    public void resume() {
+        backingMusic.play();
+    }
+
+    @Override
+    public void hide() {
+        backingMusic.pause();
+        
+    }
+
+    @Override
+    public void dispose() {
+        batch.dispose();
 		bgImg.dispose();
 		hpBar.dispose();
+        noteImg.dispose();
+        holdNoteImg1.dispose();
+        holdNoteImg2.dispose();
+        holdNoteImg3.dispose();
 		backingMusic.dispose();
 		hitSound.dispose();
 		holdSound.dispose();
-	}
+    }
 
 }

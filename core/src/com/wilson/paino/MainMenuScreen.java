@@ -18,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -39,7 +40,7 @@ public class MainMenuScreen extends Stage implements Screen {
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 1920, 1030);
 		this.game = game;
-        stage=new Stage();
+        stage=new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         batch=new SpriteBatch();
 
@@ -50,14 +51,13 @@ public class MainMenuScreen extends Stage implements Screen {
         Drawable startTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//play.png")));
         startButton=new ImageButton(startTexture);
         startButton.setTransform(true);
-        startButton.setScale(0.7f);
+        //startButton.setScale(0.7f);
         Drawable closeTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//close.png")));
         closeButton=new ImageButton(closeTexture);
         closeButton.setTransform(true);
-        closeButton.setScale(0.7f);
-        // table.add(startButton);
-        startButton.setBounds(940, 500, 636, 339);
-        closeButton.setBounds(53, 50, 636, 339);
+        //closeButton.setScale(0.7f);
+        startButton.setPosition(camera.position.x+250,camera.position.y+180);
+        closeButton.setPosition(camera.position.x-830,camera.position.y-400);
         Gdx.input.setInputProcessor(stage);
         stage.addActor(startButton);
         stage.addActor(closeButton);
@@ -94,7 +94,7 @@ public class MainMenuScreen extends Stage implements Screen {
         camera.update();
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        batch.draw(bgTexture, 0, 0);
+        batch.draw(bgTexture, 0, -30);
         batch.end();
 	    stage.act(Gdx.graphics.getDeltaTime());
 	    stage.draw();

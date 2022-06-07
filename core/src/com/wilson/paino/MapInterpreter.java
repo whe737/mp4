@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 
@@ -36,28 +38,15 @@ public class MapInterpreter
         duration=Integer.parseInt(words.get(2)); //duration is the 3rd line
         notesList=new Note[duration*4][4];
         notesIntList=new int[words.get(3).length()/2+1][4];
-        // for (int i=0;i<duration*4;i++)
-        // {
-        //     for (int j=0;j<4;j++)
-        //     {
-        //         int temp=Integer.parseInt(words.get(j+3).substring(0,1));
-        //         words.get(j+3).substring(2);
-        //         notesList[i][j]=new Note(temp);
-        //     }
-        // }
-        System.out.println(words.get(3).length()/2+1);
         for (int i=0;i<4;i++)
         {
-            for (int j=0;j<words.get(3).length()/2;j++)
+            int position=0;
+            for (int j=0;j<words.get(3).length();j++)
             {
-                String line=words.get(j+3);
-                //System.out.println();
-                //System.out.println(line);
-                int temp=Integer.parseInt(line.substring(0,1));
-                notesIntList[i][j]=temp;
-                System.out.print(line);
-                System.out.println();
-                line=line.substring(2);
+                int temp=Integer.parseInt(words.get(i+3).substring(j,j+1));
+                notesIntList[position][i]=temp;
+                j++;
+                position++;
             }
         }
         map="";
@@ -66,6 +55,26 @@ public class MapInterpreter
             map+=m;
             map+="\n";
         }
+    }
+
+    public void generate2DString()
+    {
+        String bruh="";
+        for (int i=0;i<4;i++)
+        {
+            bruh+="{";
+            for (int j=0;j<words.get(3).length();j++)
+            {
+                bruh+=words.get(i+3).substring(j,j+1);
+                if (j!=words.get(3).length()-1)
+                {
+                    bruh+=",";
+                }
+                j++;
+            }
+            bruh+="}\n";
+        }
+        System.out.println(bruh);
     }
 
     public String getMapName()

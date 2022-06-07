@@ -99,35 +99,12 @@ public class GameScreen implements Screen {
 		noteSpawnList=new ArrayList<Rectangle>();
 		BPMFrequency=60000/Integer.parseInt(map.getBPM());
 		BPMFrequency*=1000000;
-		System.out.println(Arrays.deepToString(map.getNotesIntList()));
+		//System.out.println(Arrays.deepToString(map.getNotesIntList()));
+		notesList=map.getNotesIntList();
+		System.out.println(Arrays.deepToString(notesList));
 		notesList=new int[map.getDurationint()*4][4];
-		//initializeNotesList();
-		// for (int i=0; i<map.getNotesIntList().length;i++)
-		// {
-		// 	for (int j=0;j<map.getNotesIntList()[1].length;j++)
-		// 	{
-		// 		notesList[i][j]=map.getNotesIntList()[i][j];
-		// 		//System.out.println(notesList[i][j]);
-		// 	}
-		// 	//System.out.println();
-		// }
 		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
-
-	private void initializeNotesList()
-	{
-		for (int i=0; i<map.getNotesIntList().length;i++)
-		{
-			System.out.println(i);
-			for (int j=0;j<map.getNotesIntList()[1].length;j++)
-			{
-				System.out.println(j);
-				System.out.print(map.getNotesIntList()[i][j]);
-				//System.out.print(notesList[i][j]);
-			}
-			System.out.println();
-		}
-	}
 
     private void initializeMap() //mean to only be called at create
 	{
@@ -167,7 +144,7 @@ public class GameScreen implements Screen {
 	{
 		Rectangle note=new Rectangle();
 		note.x = MathUtils.random(0, 800-64);
-      	note.y = 480;
+      	note.y = Gdx.graphics.getHeight();
       	note.width = 64;
       	note.height = 64;
       	noteSpawnList.add(note);
@@ -180,17 +157,17 @@ public class GameScreen implements Screen {
 		if (hpPos>-411&&durationLeft>=0) //checks if game over
 		{
 			backingMusic.play();
-			if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote();
+			if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote(); //spawner
 			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
 			{
 				frameCounter=0;
 				durationLeft--;
 				getDurationString();
-				//System.out.println(durationLeftString);
+				System.out.println(durationLeftString);
 				if (hpPos>-411)
 				{
 					hpPos-=40;
-					//System.out.println(hpPos);
+					System.out.println(hpPos);
 				}
 			}
 		}
@@ -228,23 +205,10 @@ public class GameScreen implements Screen {
 				hide();
 				break;
 		}
-		// for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
-		// 	Rectangle note = iter.next();
-		// 	note.y -= 600 * Gdx.graphics.getDeltaTime();
-		// 	if(note.y + 30 < 0) iter.remove();
-		// }
-		String bruh="";
-		for (int i = 0; i < 4; i++)
-		{
-			for (int j = 0; j < notesList[1].length; j++)
-			{
-				bruh+=notesList[i][j];
-			}
-			bruh+="\n";
-		}
-		if (frameCounter%60==0)
-		{
-			//System.out.println(bruh);
+		for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
+			Rectangle note = iter.next();
+			note.y -= 600 * Gdx.graphics.getDeltaTime();
+			if(note.y + 30 < 0) iter.remove();
 		}
     }
 

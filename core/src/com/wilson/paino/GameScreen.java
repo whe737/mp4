@@ -2,6 +2,7 @@ package com.wilson.paino;
 
 import java.security.Key;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Screen;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -22,9 +24,12 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 public class GameScreen implements Screen {
     final Start game;
 
@@ -46,16 +51,21 @@ public class GameScreen implements Screen {
 	private static int frameCounter;
 	private MapInterpreter map;
 	private OrthographicCamera camera;
-	private Note[][] notesList;
+	private Note[][] notesObjList;
+	private int[][] notesList;
 	private ArrayList<Rectangle> noteSpawnList;
 	private boolean loading;
 	private long lastDropTime;
-	private int gameState=0; //0 for running, 1 for paused
+	private long BPMFrequency;
+	private int gameState=0; //0 for running, 1 for paused, 2 for exit
 	private Stage stage;
 	Viewport viewport;
 	private ImageButton resumeButton;
 	private ImageButton restartButton;
 	private ImageButton exitButton;
+	int WORLD_width=1920;
+	int WORLD_height=1030;
+	Group pauseGroup;
 
     public GameScreen(final Start game)
     {
@@ -70,8 +80,11 @@ public class GameScreen implements Screen {
 		pauseOverlay = new Texture(Gdx.files.internal("ui//pause.png"));
 		hpPos=0;
 		//camera
-		camera=new OrthographicCamera();
-		camera.setToOrtho(false,1920,1030);
+		camera=new OrthographicCamera(WORLD_width,WORLD_height);
+		//camera.setToOrtho(false,1920,1030);
+		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
+		viewport = new StretchViewport(WORLD_width, WORLD_height, camera);
+		stage.getViewport().apply();
 		//audio
 		hitSound=Gdx.audio.newSound(Gdx.files.internal("fx//hit.ogg"));
 		holdSound=Gdx.audio.newSound(Gdx.files.internal("fx//hold.ogg"));
@@ -79,20 +92,47 @@ public class GameScreen implements Screen {
 		backingMusic.setVolume((float) 0.5);
 		//map interpreter
 		map=new MapInterpreter("example");
-		System.out.println(map.getMap());
+		//System.out.println(map.getMap());
 		//initializing methods
 		initializeDuration();
 		initializeMap();
 		noteSpawnList=new ArrayList<Rectangle>();
-		spawnNote();
-		viewport = new StretchViewport(1920,1030);
-    	Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		BPMFrequency=60000/Integer.parseInt(map.getBPM());
+		BPMFrequency*=1000000;
+		System.out.println(Arrays.deepToString(map.getNotesIntList()));
+		notesList=new int[map.getDurationint()*4][4];
+		//initializeNotesList();
+		// for (int i=0; i<map.getNotesIntList().length;i++)
+		// {
+		// 	for (int j=0;j<map.getNotesIntList()[1].length;j++)
+		// 	{
+		// 		notesList[i][j]=map.getNotesIntList()[i][j];
+		// 		//System.out.println(notesList[i][j]);
+		// 	}
+		// 	//System.out.println();
+		// }
+		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
+
+	private void initializeNotesList()
+	{
+		for (int i=0; i<map.getNotesIntList().length;i++)
+		{
+			System.out.println(i);
+			for (int j=0;j<map.getNotesIntList()[1].length;j++)
+			{
+				System.out.println(j);
+				System.out.print(map.getNotesIntList()[i][j]);
+				//System.out.print(notesList[i][j]);
+			}
+			System.out.println();
+		}
+	}
 
     private void initializeMap() //mean to only be called at create
 	{
 		loading=true;
-		notesList=map.getNotesList();
+		notesList=map.getNotesIntList();
 		loading=false;
 	}
 
@@ -137,24 +177,40 @@ public class GameScreen implements Screen {
     @Override
     public void show() {
         // TODO Auto-generated method stub
-        
+		if (hpPos>-411&&durationLeft>=0) //checks if game over
+		{
+			backingMusic.play();
+			if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote();
+			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
+			{
+				frameCounter=0;
+				durationLeft--;
+				getDurationString();
+				//System.out.println(durationLeftString);
+				if (hpPos>-411)
+				{
+					hpPos-=40;
+					//System.out.println(hpPos);
+				}
+			}
+		}
     }
 
     @Override
     public void render(float delta) {
         frameCounter++;
-		ScreenUtils.clear(0, 0, 0.5f, 1);
-		camera.update();
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		batch.draw(bgImg, 0, -30);
-		batch.draw(hpBar,hpPos, 863);
+		Gdx.gl.glClearColor(1, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		stage.getBatch().setProjectionMatrix(stage.getCamera().combined);
+        stage.getCamera().update();
+		stage.getBatch().begin();
+		stage.getBatch().draw(bgImg, 0, -30,1920,1080);
+		stage.getBatch().draw(hpBar,hpPos, 863,414,95);
 		for(Rectangle noteList: noteSpawnList) {
-			batch.draw(noteImg, noteList.x, noteList.y);
+			stage.getBatch().draw(noteImg, noteList.x, noteList.y);
 		}
-		batch.end();
-		//resize(camera.viewportHeight/2, camera.viewportWidth/2);
-		stage.act();
+		stage.getBatch().end();
+		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
 		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
 		{
@@ -163,81 +219,72 @@ public class GameScreen implements Screen {
 		switch (gameState)
 		{
 			case 0:
-				resume();
+				show();
 				break;
 			case 1:
 				pause();
 				break;
-			default:
+			case 2:
+				hide();
 				break;
 		}
-		//if(TimeUtils.nanoTime() - lastDropTime > 1000000000) spawnNote();
 		// for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
-		// 	Rectangle raindrop = iter.next();
-		// 	raindrop.y -= 600 * Gdx.graphics.getDeltaTime();
-		// 	if(raindrop.y + 30 < 0) iter.remove();
+		// 	Rectangle note = iter.next();
+		// 	note.y -= 600 * Gdx.graphics.getDeltaTime();
+		// 	if(note.y + 30 < 0) iter.remove();
 		// }
-		// if (hpPos>-411&&durationLeft>=0) //checks if game over
-		// {
-		// 	backingMusic.play();
-		// 	if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
-		// 	{
-		// 		frameCounter=0;
-		// 		durationLeft--;
-		// 		getDurationString();
-		// 		System.out.println(durationLeftString);
-		// 		if (hpPos>-411)
-		// 		{
-		// 			hpPos-=40;
-		// 			System.out.println(hpPos);
-		// 		}
-		// 	}
-		// }   
+		String bruh="";
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < notesList[1].length; j++)
+			{
+				bruh+=notesList[i][j];
+			}
+			bruh+="\n";
+		}
+		if (frameCounter%60==0)
+		{
+			//System.out.println(bruh);
+		}
     }
 
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height);
-    	camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
+        stage.getViewport().update(width, height);
+        stage.getCamera().viewportWidth = this.WORLD_width;
+        stage.getCamera().viewportHeight = this.WORLD_height;
+        stage.getCamera().position.set(stage.getCamera().viewportWidth / 2, stage.getCamera().viewportHeight / 2, 0);
+        stage.getCamera().update();
     }
 
     @Override
     public void pause() {
         backingMusic.pause();
+		pauseGroup=new Group();
 		Image pauseScreen=new Image(new Texture(Gdx.files.internal("ui//pause.png")));
-		pauseScreen.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		stage.addActor(pauseScreen);
-		
+		//pauseScreen.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Drawable resumePNG=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//resume.png")));
+		resumeButton=new ImageButton(resumePNG);
+		pauseGroup.addActor(pauseScreen);
+		pauseGroup.addActor(resumeButton);
+		stage.addActor(pauseGroup);
     }
 
     @Override
     public void resume() {
-        for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
-			Rectangle raindrop = iter.next();
-			raindrop.y -= 600 * Gdx.graphics.getDeltaTime();
-			if(raindrop.y + 30 < 0) iter.remove();
-		}
-		if (hpPos>-411&&durationLeft>=0) //checks if game over
+		if (gameState==1)
 		{
-			backingMusic.play();
-			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
-			{
-				frameCounter=0;
-				durationLeft--;
-				getDurationString();
-				System.out.println(durationLeftString);
-				if (hpPos>-411)
-				{
-					hpPos-=40;
-					System.out.println(hpPos);
-				}
-			}
-		}   
+			gameState=0;
+			pauseGroup.remove();
+			show();
+		}
     }
 
     @Override
     public void hide() {
         backingMusic.pause();
+		// game.setScreen(new MainMenuScreen(game));
+		// dispose();
     }
 
     @Override

@@ -137,13 +137,14 @@ public class Paino extends ApplicationAdapter {
 		{
 			System.out.println("loading");
 		}
-		if (hpPos>-411&&durationLeft>=0) //checks if game over
+		if (hpPos>-411) //checks if game over&&durationLeft>=0
 		{
 			if (!isPaused&&!loading)
 			{
 				backingMusic.play();
 				if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
 				{
+					frameCounter=0;
 					durationLeft--;
 					getDurationString();
 					System.out.println(durationLeftString);
@@ -164,6 +165,7 @@ public class Paino extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		batch.dispose();
+		
 		bgImg.dispose();
 		hpBar.dispose();
 		backingMusic.dispose();

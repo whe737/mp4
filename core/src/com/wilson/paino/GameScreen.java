@@ -65,6 +65,7 @@ public class GameScreen implements Screen {
 	private ImageButton exitButton;
 	int WORLD_width=1920;
 	int WORLD_height=1030;
+	int mapPosition=0;
 	Group pauseGroup;
 
     public GameScreen(final Start game)
@@ -102,7 +103,6 @@ public class GameScreen implements Screen {
 		//System.out.println(Arrays.deepToString(map.getNotesIntList()));
 		notesList=map.getNotesIntList();
 		System.out.println(Arrays.deepToString(notesList));
-		notesList=new int[map.getDurationint()*4][4];
 		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
@@ -142,13 +142,65 @@ public class GameScreen implements Screen {
 
 	private void spawnNote()
 	{
+		noteSpawnList=new ArrayList<>();
 		Rectangle note=new Rectangle();
-		note.x = MathUtils.random(0, 800-64);
-      	note.y = Gdx.graphics.getHeight();
-      	note.width = 64;
-      	note.height = 64;
-      	noteSpawnList.add(note);
-      	lastDropTime = TimeUtils.nanoTime();
+		if (mapPosition<notesList.length)
+		{
+			for (int i=0;i<4;i++)
+			{
+				System.out.println(notesList[mapPosition][i]);
+				// if (i==0&&notesList[mapPosition][i]==1)
+				// {
+				// 	note.x=Gdx.graphics.getWidth()/2-157;
+				// }
+				// else if (i==1&&notesList[mapPosition][i]==1)
+				// {
+				// 	note.x=Gdx.graphics.getWidth()/2+53;
+				// }
+				// else if (i==2&&notesList[mapPosition][i]==1)
+				// {
+				// 	note.x=Gdx.graphics.getWidth()/2+258;
+				// }
+				// else
+				// {
+				// 	note.x=Gdx.graphics.getWidth()/2+465;
+				// }
+				switch (i)
+				{
+					case 0:
+						if (notesList[mapPosition][0]==1)
+						{
+							note.x=Gdx.graphics.getWidth()/2-157;
+							break;
+						}
+					case 1:
+						if (notesList[mapPosition][1]==1)
+						{
+							note.x=Gdx.graphics.getWidth()/2-157;
+							break;
+						}
+					case 2:
+						if (notesList[mapPosition][2]==1)
+						{
+							note.x=Gdx.graphics.getWidth()/2-157;
+							break;
+						}
+					case 3:
+						if (notesList[mapPosition][3]==1)
+						{
+							note.x=Gdx.graphics.getWidth()/2-157;
+							break;
+						}
+				}
+				note.y = Gdx.graphics.getHeight()+200;
+				note.width = 64;
+				note.height = 64;
+				noteSpawnList.add(note);
+			}
+			System.out.println();
+		}
+		mapPosition++;
+		lastDropTime = TimeUtils.nanoTime();
 	}
 
     @Override
@@ -157,19 +209,27 @@ public class GameScreen implements Screen {
 		if (hpPos>-411&&durationLeft>=0) //checks if game over
 		{
 			backingMusic.play();
-			if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote(); //spawner
+			// if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote(); //spawner
 			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
 			{
 				frameCounter=0;
 				durationLeft--;
 				getDurationString();
-				System.out.println(durationLeftString);
+				//System.out.println(durationLeftString);
 				if (hpPos>-411)
 				{
 					hpPos-=40;
-					System.out.println(hpPos);
+					//System.out.println(hpPos);
 				}
 			}
+		}
+		else if (hpPos<-411)
+		{
+			System.out.println("user died");
+		}
+		else
+		{
+			System.out.println("user won");
 		}
     }
 
@@ -183,7 +243,12 @@ public class GameScreen implements Screen {
 		stage.getBatch().begin();
 		stage.getBatch().draw(bgImg, 0, -30,1920,1080);
 		stage.getBatch().draw(hpBar,hpPos, 863,414,95);
-		for(Rectangle noteList: noteSpawnList) {
+		for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {  //moves blocks
+			Rectangle note = iter.next();
+			note.y -= 600 * Gdx.graphics.getDeltaTime();
+			if(note.y + 30 < 0) iter.remove();
+		}
+		for(Rectangle noteList: noteSpawnList) {  //spawns
 			stage.getBatch().draw(noteImg, noteList.x, noteList.y);
 		}
 		stage.getBatch().end();
@@ -204,11 +269,6 @@ public class GameScreen implements Screen {
 			case 2:
 				hide();
 				break;
-		}
-		for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
-			Rectangle note = iter.next();
-			note.y -= 600 * Gdx.graphics.getDeltaTime();
-			if(note.y + 30 < 0) iter.remove();
 		}
     }
 
@@ -232,6 +292,10 @@ public class GameScreen implements Screen {
 		pauseGroup.addActor(pauseScreen);
 		pauseGroup.addActor(resumeButton);
 		stage.addActor(pauseGroup);
+		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
+		{
+			resume();
+		}
     }
 
     @Override

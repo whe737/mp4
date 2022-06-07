@@ -96,7 +96,6 @@ public class GameScreen implements Screen {
 		//System.out.println(map.getMap());
 		//initializing methods
 		initializeDuration();
-		initializeMap();
 		noteSpawnList=new ArrayList<Rectangle>();
 		BPMFrequency=60000/Integer.parseInt(map.getBPM());
 		BPMFrequency*=1000000;
@@ -105,13 +104,6 @@ public class GameScreen implements Screen {
 		System.out.println(Arrays.deepToString(notesList));
 		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
-
-    private void initializeMap() //mean to only be called at create
-	{
-		loading=true;
-		notesList=map.getNotesIntList();
-		loading=false;
-	}
 
 	private void initializeDuration() //use for first time
 	{
@@ -143,56 +135,71 @@ public class GameScreen implements Screen {
 	private void spawnNote()
 	{
 		noteSpawnList=new ArrayList<>();
-		Rectangle note=new Rectangle();
 		if (mapPosition<notesList.length)
 		{
 			for (int i=0;i<4;i++)
 			{
-				System.out.println(notesList[mapPosition][i]);
-				// if (i==0&&notesList[mapPosition][i]==1)
-				// {
-				// 	note.x=Gdx.graphics.getWidth()/2-157;
-				// }
-				// else if (i==1&&notesList[mapPosition][i]==1)
-				// {
-				// 	note.x=Gdx.graphics.getWidth()/2+53;
-				// }
-				// else if (i==2&&notesList[mapPosition][i]==1)
-				// {
-				// 	note.x=Gdx.graphics.getWidth()/2+258;
-				// }
-				// else
-				// {
-				// 	note.x=Gdx.graphics.getWidth()/2+465;
-				// }
-				switch (i)
+				Rectangle note=new Rectangle();
+				//System.out.println(notesList[mapPosition][i]);
+				if (i==0&&notesList[mapPosition][i]==1)
 				{
-					case 0:
-						if (notesList[mapPosition][0]==1)
-						{
-							note.x=Gdx.graphics.getWidth()/2-157;
-							break;
-						}
-					case 1:
-						if (notesList[mapPosition][1]==1)
-						{
-							note.x=Gdx.graphics.getWidth()/2-157;
-							break;
-						}
-					case 2:
-						if (notesList[mapPosition][2]==1)
-						{
-							note.x=Gdx.graphics.getWidth()/2-157;
-							break;
-						}
-					case 3:
-						if (notesList[mapPosition][3]==1)
-						{
-							note.x=Gdx.graphics.getWidth()/2-157;
-							break;
-						}
+					System.out.println("case 0");
+					note.x=Gdx.graphics.getWidth()/2-157;
 				}
-				note.y = Gdx.graphics.getHeight()+200;
+				else if (i==1&&notesList[mapPosition][i]==1)
+				{
+					System.out.println("case 1");
+					note.x=Gdx.graphics.getWidth()/2+53;
+				}
+				else if (i==2&&notesList[mapPosition][i]==1)
+				{
+					System.out.println("case 2");
+					note.x=Gdx.graphics.getWidth()/2+258;
+				}
+				else if (i==3&&notesList[mapPosition][i]==1)
+				{
+					System.out.println("case 3");
+					note.x=Gdx.graphics.getWidth()/2+465;
+				}
+				else
+				{
+					System.out.println("no note spawned");
+				}
+				// switch (i)
+				// {
+				// 	case 0:
+				// 		if (notesList[mapPosition][0]==1)
+				// 		{
+				// 			System.out.println("case 0");
+				// 			note.x=Gdx.graphics.getWidth()/2-157;
+				// 			break;
+				// 		}
+				// 	case 1:
+				// 		if (notesList[mapPosition][1]==1)
+				// 		{
+				// 			System.out.println("case 1");
+				// 			note.x=Gdx.graphics.getWidth()/2-157;
+				// 			break;
+				// 		}
+				// 	case 2:
+				// 		if (notesList[mapPosition][2]==1)
+				// 		{
+				// 			System.out.println("case 2");
+				// 			note.x=Gdx.graphics.getWidth()/2-157;
+				// 			break;
+				// 		}
+				// 	case 3:
+				// 		if (notesList[mapPosition][3]==1)
+				// 		{
+				// 			System.out.println("case 3");
+				// 			note.x=Gdx.graphics.getWidth()/2-157;
+				// 			break;
+				// 		}
+				// 	default:
+				// 		System.out.println("default");
+				// 		break;
+				// }
+				note.y = Gdx.graphics.getHeight();
 				note.width = 64;
 				note.height = 64;
 				noteSpawnList.add(note);
@@ -209,7 +216,7 @@ public class GameScreen implements Screen {
 		if (hpPos>-411&&durationLeft>=0) //checks if game over
 		{
 			backingMusic.play();
-			// if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote(); //spawner
+			if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote(); //spawner
 			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
 			{
 				frameCounter=0;
@@ -225,11 +232,11 @@ public class GameScreen implements Screen {
 		}
 		else if (hpPos<-411)
 		{
-			System.out.println("user died");
+			//System.out.println("user died");
 		}
 		else
 		{
-			System.out.println("user won");
+			//System.out.println("user won");
 		}
     }
 

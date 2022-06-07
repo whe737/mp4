@@ -48,34 +48,35 @@ public class MainMenuScreen extends Stage implements Screen {
         //table.setFillParent(true);
         //stage.addActor(table);
         //table.setDebug(true);
-        Drawable startTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//play.png")));
-        startButton=new ImageButton(startTexture);
-        startButton.setTransform(true);
+        //Drawable startTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//play.png")));
+        //startButton=new ImageButton(startTexture);
+        //startButton.setTransform(true);
         //startButton.setScale(0.7f);
-        Drawable closeTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//close.png")));
-        closeButton=new ImageButton(closeTexture);
-        closeButton.setTransform(true);
+        //Drawable closeTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//close.png")));
+        //closeButton=new ImageButton(closeTexture);
+        //closeButton.setTransform(true);
         //closeButton.setScale(0.7f);
-        startButton.setPosition(camera.position.x+250,camera.position.y+180);
-        closeButton.setPosition(camera.position.x-830,camera.position.y-400);
-        Gdx.input.setInputProcessor(stage);
-        stage.addActor(startButton);
-        stage.addActor(closeButton);
-        startButton.addListener(new ClickListener(){
-            public void clicked(InputEvent event, float x, float y){
-                    game.setScreen(new GameScreen(game));
-                    dispose();
-                }
-        });
-        closeButton.addListener(new ClickListener()
-        {
-            public void clicked(InputEvent event, float x, float y)
-            {
-                dispose();
-                game.dispose();
-                System.exit(1);
-            }
-        });
+        //startButton.setPosition(camera.position.x+250,camera.position.y+180);
+        //closeButton.setPosition(camera.position.x-830,camera.position.y-400);
+        //Gdx.input.setInputProcessor(stage);
+        //stage.addActor(startButton);
+        //stage.addActor(closeButton);
+        // startButton.addListener(new ClickListener(){
+        //     public void clicked(InputEvent event, float x, float y){
+        //             game.setScreen(new GameScreen(game));
+        //             dispose();
+        //         }
+        // });
+        // closeButton.addListener(new ClickListener()
+        // {
+        //     public void clicked(InputEvent event, float x, float y)
+        //     {
+        //         dispose();
+        //         game.dispose();
+        //         System.exit(1);
+        //     }
+        // });
+        
         bgTexture=new Texture(Gdx.files.internal("ui//start.png"));
         backgroundImg=new Image(bgTexture);
         
@@ -98,6 +99,10 @@ public class MainMenuScreen extends Stage implements Screen {
         batch.end();
 	    stage.act(Gdx.graphics.getDeltaTime());
 	    stage.draw();
+        if (Gdx.input.isTouched()) {
+			game.setScreen(new GameScreen(game));
+			dispose();
+		}
     }
 
     @Override

@@ -1,11 +1,14 @@
 package com.wilson.paino;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -14,11 +17,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
-
-import org.w3c.dom.Text;
-
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 public class GameScreen implements Screen {
     final Start game;
 
@@ -29,6 +35,7 @@ public class GameScreen implements Screen {
 	private Texture holdNoteImg1;
 	private Texture holdNoteImg2;
 	private Texture holdNoteImg3;
+	private Texture pauseOverlay;
 	private Sound hitSound;
 	private Sound holdSound;
 	private Music backingMusic;
@@ -39,19 +46,28 @@ public class GameScreen implements Screen {
 	private static int frameCounter;
 	private MapInterpreter map;
 	private OrthographicCamera camera;
-	private Note[][] notes;
+	private Note[][] notesList;
 	private ArrayList<Rectangle> noteSpawnList;
 	private boolean loading;
 	private long lastDropTime;
+	private int gameState=0; //0 for running, 1 for paused
+	private Stage stage;
+	Viewport viewport;
+	private ImageButton resumeButton;
+	private ImageButton restartButton;
+	private ImageButton exitButton;
 
     public GameScreen(final Start game)
     {
         this.game=game;
         batch = new SpriteBatch();
+		stage=new Stage(new ScreenViewport());
+		Gdx.input.setInputProcessor(stage);
 		bgImg = new Texture(Gdx.files.internal("ui//layout.png"));
 		hpBar = new Texture(Gdx.files.internal("ui//HealthBar.png"));
 		noteImg = new Texture(Gdx.files.internal("ui//BlueBox.png"));
 		holdNoteImg1 = new Texture(Gdx.files.internal("ui//HoldB.png"));
+		pauseOverlay = new Texture(Gdx.files.internal("ui//pause.png"));
 		hpPos=0;
 		//camera
 		camera=new OrthographicCamera();
@@ -69,12 +85,14 @@ public class GameScreen implements Screen {
 		initializeMap();
 		noteSpawnList=new ArrayList<Rectangle>();
 		spawnNote();
+		viewport = new StretchViewport(1920,1030);
+    	Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     private void initializeMap() //mean to only be called at create
 	{
 		loading=true;
-		notes=map.getNotesList();
+		notesList=map.getNotesList();
 		loading=false;
 	}
 
@@ -133,64 +151,93 @@ public class GameScreen implements Screen {
 		batch.draw(hpBar,hpPos, 863);
 		for(Rectangle noteList: noteSpawnList) {
 			batch.draw(noteImg, noteList.x, noteList.y);
-		 }
-		batch.end();
-		if(TimeUtils.nanoTime() - lastDropTime > 1000000000) spawnNote();
-		for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
-			Rectangle raindrop = iter.next();
-			raindrop.y -= 600 * Gdx.graphics.getDeltaTime();
-			if(raindrop.y + 30 < 0) iter.remove();
-		 }
-		
-		if (loading)
-		{
-			System.out.println("loading");
 		}
-		if (hpPos>-411&&durationLeft>=0) //checks if game over
+		batch.end();
+		//resize(camera.viewportHeight/2, camera.viewportWidth/2);
+		stage.act();
+		stage.draw();
+		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
 		{
-			if (!isPaused&&!loading)
-			{
-				backingMusic.play();
-				if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
-				{
-					frameCounter=0;
-					durationLeft--;
-					getDurationString();
-					System.out.println(durationLeftString);
-					if (hpPos>-411)
-					{
-						hpPos-=40;
-						System.out.println(hpPos);
-					}
-				}
-			}
-			else 
-			{
-				backingMusic.pause();
-			}
-		}   
+			if (gameState==0) gameState=1;
+		}
+		switch (gameState)
+		{
+			case 0:
+				resume();
+				break;
+			case 1:
+				pause();
+				break;
+			default:
+				break;
+		}
+		//if(TimeUtils.nanoTime() - lastDropTime > 1000000000) spawnNote();
+		// for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
+		// 	Rectangle raindrop = iter.next();
+		// 	raindrop.y -= 600 * Gdx.graphics.getDeltaTime();
+		// 	if(raindrop.y + 30 < 0) iter.remove();
+		// }
+		// if (hpPos>-411&&durationLeft>=0) //checks if game over
+		// {
+		// 	backingMusic.play();
+		// 	if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
+		// 	{
+		// 		frameCounter=0;
+		// 		durationLeft--;
+		// 		getDurationString();
+		// 		System.out.println(durationLeftString);
+		// 		if (hpPos>-411)
+		// 		{
+		// 			hpPos-=40;
+		// 			System.out.println(hpPos);
+		// 		}
+		// 	}
+		// }   
     }
 
     @Override
     public void resize(int width, int height) {
-        // TODO Auto-generated method stub
-        
+        viewport.update(width, height);
+    	camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
     }
 
     @Override
     public void pause() {
         backingMusic.pause();
+		Image pauseScreen=new Image(new Texture(Gdx.files.internal("ui//pause.png")));
+		pauseScreen.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		stage.addActor(pauseScreen);
+		
     }
 
     @Override
     public void resume() {
-        backingMusic.play();
+        for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {
+			Rectangle raindrop = iter.next();
+			raindrop.y -= 600 * Gdx.graphics.getDeltaTime();
+			if(raindrop.y + 30 < 0) iter.remove();
+		}
+		if (hpPos>-411&&durationLeft>=0) //checks if game over
+		{
+			backingMusic.play();
+			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
+			{
+				frameCounter=0;
+				durationLeft--;
+				getDurationString();
+				System.out.println(durationLeftString);
+				if (hpPos>-411)
+				{
+					hpPos-=40;
+					System.out.println(hpPos);
+				}
+			}
+		}   
     }
 
     @Override
     public void hide() {
         backingMusic.pause();
-        
     }
 
     @Override

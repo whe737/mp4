@@ -9,6 +9,8 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
@@ -31,7 +33,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-public class GameScreen implements Screen{
+public class GameScreen implements Screen, InputProcessor{
     final Start game;
 
     private SpriteBatch batch;
@@ -58,7 +60,7 @@ public class GameScreen implements Screen{
 	private boolean loading;
 	private long lastDropTime;
 	private long BPMFrequency;
-	private int gameState=0; //0 for running, 1 for paused, 2 for exit, 3 for game over, 4 for win
+	public static int gameState=0; //0 for running, 1 for paused, 2 for exit, 3 for game over, 4 for win
 	private Stage stage;
 	Viewport viewport;
 	private ImageButton resumeButton;
@@ -73,20 +75,26 @@ public class GameScreen implements Screen{
 	Rectangle box2;
 	Rectangle box3;
 	Rectangle box4;
-	boolean box1Active;
-	boolean box2Active;
-	boolean box3Active;
-	boolean box4Active;
+	public static boolean box1Active;
+	public static boolean box2Active;
+	public static boolean box3Active;
+	public static boolean box4Active;
 	Drawable resumePNG;
 	Image pauseScreen;
 	Texture boxImg;
+	InputProcessor keyboardInputs;
+	InputMultiplexer multiplexer;
 
     public GameScreen(final Start game)
     {
         this.game=game;
         batch = new SpriteBatch();
 		stage=new Stage(new ScreenViewport());
-		Gdx.input.setInputProcessor(stage);
+		keyboardInputs=new InputReader();
+		multiplexer=new InputMultiplexer();
+		multiplexer.addProcessor(keyboardInputs);
+		multiplexer.addProcessor(stage);
+		Gdx.input.setInputProcessor(multiplexer);
 		bgImg = new Texture(Gdx.files.internal("ui//layout.png"));
 		hpBar = new Texture(Gdx.files.internal("ui//HealthBar.png"));
 		noteImg = new Texture(Gdx.files.internal("ui//BlueBox.png"));
@@ -94,25 +102,25 @@ public class GameScreen implements Screen{
 		pauseOverlay = new Texture(Gdx.files.internal("ui//pause.png"));
 		hpPos=0;
 		box1=new Rectangle();
-		box1.x=Gdx.graphics.getWidth()/2-253;
-		box1.y=-30;
-		box1.height=64;
-		box1.width=64;
+		box1.x=Gdx.graphics.getWidth()/2-157;
+		box1.y=-10;
+		box1.height=147;
+		box1.width=173;
 		box2=new Rectangle();
-		box2.x=Gdx.graphics.getWidth()/2-42;
-		box2.y=-30;
-		box2.width=64;
-		box2.height=64;
+		box2.x=Gdx.graphics.getWidth()/2+53;
+		box2.y=-10;
+		box2.height=147;
+		box2.width=173;
 		box3=new Rectangle();
-		box3.x=Gdx.graphics.getWidth()/2+165;
-		box3.y=-30;
-		box3.height=64;
-		box3.width=64;
+		box3.x=Gdx.graphics.getWidth()/2+258;
+		box3.y=-10;
+		box3.height=147;
+		box3.width=173;
 		box4=new Rectangle();
-		box4.x=Gdx.graphics.getWidth()/2+370;
-		box4.y=-30;
-		box4.height=64;
-		box4.width=64;
+		box4.x=Gdx.graphics.getWidth()/2+465;
+		box4.y=-10;
+		box4.height=147;
+		box4.width=173;
 		boxImg=new Texture(Gdx.files.internal("ui//boxOutline.png"));
 		//camera
 		camera=new OrthographicCamera(WORLD_width,WORLD_height);
@@ -123,11 +131,10 @@ public class GameScreen implements Screen{
 		//audio
 		hitSound=Gdx.audio.newSound(Gdx.files.internal("fx//hit.ogg"));
 		holdSound=Gdx.audio.newSound(Gdx.files.internal("fx//hold.ogg"));
-		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//funny.mp3"));
+		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//song.mp3"));
 		backingMusic.setVolume((float) 0.5);
 		//map interpreter
-		map=new MapInterpreter("example");
-		//System.out.println(map.getMap());
+		map=new MapInterpreter("map");
 		//initializing methods
 		initializeDuration();
 		noteSpawnList=new ArrayList<Rectangle>();
@@ -190,7 +197,7 @@ public class GameScreen implements Screen{
 					note.x=Gdx.graphics.getWidth()/2-157;
 					note.y = Gdx.graphics.getHeight()+100;
 					note.width = 64;
-					note.height = 64;
+					note.height = 24;
 					noteSpawnList.add(note);
 				}
 				else if (i==1&&notesList[mapPosition][i]==1)
@@ -199,7 +206,7 @@ public class GameScreen implements Screen{
 					note.x=Gdx.graphics.getWidth()/2+53;
 					note.y = Gdx.graphics.getHeight()+100;
 					note.width = 64;
-					note.height = 64;
+					note.height = 24;
 					noteSpawnList.add(note);
 				}
 				else if (i==2&&notesList[mapPosition][i]==1)
@@ -208,7 +215,7 @@ public class GameScreen implements Screen{
 					note.x=Gdx.graphics.getWidth()/2+258;
 					note.y = Gdx.graphics.getHeight()+100;
 					note.width = 64;
-					note.height = 64;
+					note.height = 24;
 					noteSpawnList.add(note);
 				}
 				else if (i==3&&notesList[mapPosition][i]==1)
@@ -217,7 +224,7 @@ public class GameScreen implements Screen{
 					note.x=Gdx.graphics.getWidth()/2+465;
 					note.y = Gdx.graphics.getHeight()+100;
 					note.width = 64;
-					note.height = 64;
+					note.height = 24;
 					noteSpawnList.add(note);
 				}
 				else
@@ -225,7 +232,7 @@ public class GameScreen implements Screen{
 					//System.out.println("no note spawned");
 				}
 			}
-			System.out.println();
+			//System.out.println();
 		}
 		mapPosition++;
 		lastDropTime = TimeUtils.nanoTime();
@@ -233,7 +240,6 @@ public class GameScreen implements Screen{
 
     @Override
     public void show() {
-        // TODO Auto-generated method stub
 		if (hpPos>-411&&durationLeft>=0) //checks if game over
 		{
 			backingMusic.play();
@@ -243,17 +249,16 @@ public class GameScreen implements Screen{
 				frameCounter=0;
 				durationLeft--;
 				getDurationString();
-				//System.out.println(durationLeftString);
 				if (hpPos>-411)
 				{
-					hpPos-=40;
-					//System.out.println(hpPos);
+					// hpPos-=40;
 				}
 			}
 		}
 		else if (hpPos<-411)
 		{
-			//System.out.println("user died");
+			backingMusic.pause();
+			System.out.println("user died");
 		}
 		else
 		{
@@ -271,38 +276,72 @@ public class GameScreen implements Screen{
 		stage.getBatch().begin();
 		stage.getBatch().draw(bgImg, 0, -30,1920,1080);
 		stage.getBatch().draw(hpBar,hpPos, 863,414,95);
-		stage.getBatch().draw(boxImg,box1.x,box1.y);
-		stage.getBatch().draw(boxImg,box2.x,box2.y);
-		stage.getBatch().draw(boxImg,box3.x,box3.y);
-		stage.getBatch().draw(boxImg,box4.x,box4.y);
+		stage.getBatch().draw(boxImg,box1.x,box1.y,box1.width,box1.height);
+		stage.getBatch().draw(boxImg,box2.x,box2.y,box2.width,box2.height);
+		stage.getBatch().draw(boxImg,box3.x,box3.y,box3.width,box3.height);
+		stage.getBatch().draw(boxImg,box4.x,box4.y,box4.width,box4.height);
 		for(Rectangle noteList: noteSpawnList) {  //spawns
 			stage.getBatch().draw(noteImg, noteList.x, noteList.y);
 		}
 		if (gameState==0)
 		{
-			for (Iterator<Rectangle> iter = noteSpawnList.iterator(); iter.hasNext(); ) {  //moves blocks
+			Iterator<Rectangle> iter = noteSpawnList.iterator();
+			while (iter.hasNext()) {
 				Rectangle note = iter.next();
 				note.y -= 600 * Gdx.graphics.getDeltaTime();
-				if(note.y + 90 < 0) iter.remove();
-				if (note.overlaps(box1)) {
-					combo++;
-					System.out.print("box1");
-					hitSound.play();
+				if (note.y + 90 < 0)
 					iter.remove();
+				if (note.overlaps(box1)&&box1Active) {
+					combo++;
+					hitSound.play(0.5f);
+					iter.remove();
+					if (iter.hasNext())
+					{
+						iter.next();
+					}
 				}
+				else if (note.overlaps(box2)&&box2Active)
+				{
+					combo++;
+					System.out.println("box2");
+					hitSound.play(0.5f);
+					iter.remove();
+					if (iter.hasNext())
+					{
+						iter.next();
+					}				
+				}
+				else if (note.overlaps(box3)&&box3Active)
+				{
+					combo++;
+					System.out.println("box3");
+					hitSound.play(0.5f);
+					iter.remove();
+					if (iter.hasNext())
+					{
+						iter.next();
+					}
+				}
+				else if (note.overlaps(box4)&&box4Active)
+				{
+					combo++;
+					System.out.println("box4");
+					hitSound.play(0.5f);
+					iter.remove();
+					if (iter.hasNext())
+					{
+						iter.next();
+					}
+				}
+				// else 
+				// {
+				// 	//System.out.println("wtf");
+				// }
 			}
 		}
 		stage.getBatch().end();
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
-		if (Gdx.input.isKeyJustPressed(Input.Keys.D))
-		{
-			System.out.println("D was pressed on time");
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
-		{
-			if (gameState==0) gameState=1;
-		}
 		switch (gameState)
 		{
 			case 0:
@@ -333,14 +372,6 @@ public class GameScreen implements Screen{
 		pauseGroup.addActor(pauseScreen);
 		pauseGroup.addActor(resumeButton);
 		stage.addActor(pauseGroup);
-		// if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
-		// {
-			// 	resume();
-			// }
-		// resumeButton.addListener(new ClickListener()
-		// {
-		// 	System.out.println("Resume button clicked");
-		// });
 	}
 
     @Override
@@ -374,4 +405,52 @@ public class GameScreen implements Screen{
 		hitSound.dispose();
 		holdSound.dispose();
     }
+
+	@Override
+	public boolean keyDown(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean mouseMoved(int screenX, int screenY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(float amountX, float amountY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

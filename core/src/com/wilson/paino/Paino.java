@@ -56,10 +56,10 @@ public class Paino extends ApplicationAdapter {
 		//audio
 		hitSound=Gdx.audio.newSound(Gdx.files.internal("fx//hit.ogg"));
 		holdSound=Gdx.audio.newSound(Gdx.files.internal("fx//hold.ogg"));
-		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//funny.mp3"));
+		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//song.mp3"));
 		backingMusic.setVolume((float) 0.5);
 		//map interpreter
-		map=new MapInterpreter("example");
+		map=new MapInterpreter("map");
 		System.out.println(map.getMap());
 		//initializing methods
 		initializeDuration();

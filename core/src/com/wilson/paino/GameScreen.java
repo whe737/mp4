@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.swing.JOptionPane;
+
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ApplicationAdapter;
@@ -16,7 +18,9 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -34,7 +38,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 public class GameScreen implements Screen, InputProcessor{
-    final Start game;
+    Start game;
 
     private SpriteBatch batch;
 	private	Texture bgImg;
@@ -60,7 +64,7 @@ public class GameScreen implements Screen, InputProcessor{
 	private boolean loading;
 	private long lastDropTime;
 	private long BPMFrequency;
-	public static int gameState=0; //0 for running, 1 for paused, 2 for exit, 3 for game over, 4 for win
+	public static int gameState=0; //0 for running, 1 for paused, 2 for game over, 3 for win
 	private Stage stage;
 	Viewport viewport;
 	private ImageButton resumeButton;
@@ -84,9 +88,22 @@ public class GameScreen implements Screen, InputProcessor{
 	Texture boxImg;
 	InputProcessor keyboardInputs;
 	InputMultiplexer multiplexer;
+	BitmapFont font;
+	FreeTypeFontGenerator generator;
+	TextureRegionDrawable quitPNG;
+	//ImageButton quitButton;
+	TextureRegionDrawable restartPNG;
+	Image failScreen;
+	Image winScreen;
 
     public GameScreen(final Start game)
     {
+		// generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts//Play-Regular.ttf"));
+		// FreeTypeFontParameter param = new FreeTypeFontParameter();
+		// param. = 12;
+		// font=generator.generateFont((FreeTypeFontParameter)param);
+		// generator.dispose();
+		// font.getData().setScale(25.0f);
         this.game=game;
         batch = new SpriteBatch();
 		stage=new Stage(new ScreenViewport());
@@ -132,7 +149,7 @@ public class GameScreen implements Screen, InputProcessor{
 		hitSound=Gdx.audio.newSound(Gdx.files.internal("fx//hit.ogg"));
 		holdSound=Gdx.audio.newSound(Gdx.files.internal("fx//hold.ogg"));
 		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//song.mp3"));
-		backingMusic.setVolume((float) 0.5);
+		backingMusic.setVolume((float) 1);
 		//map interpreter
 		map=new MapInterpreter("map");
 		//initializing methods
@@ -140,10 +157,15 @@ public class GameScreen implements Screen, InputProcessor{
 		noteSpawnList=new ArrayList<Rectangle>();
 		BPMFrequency=60000/Integer.parseInt(map.getBPM());
 		BPMFrequency*=1000000;
+		failScreen=new Image(new Texture(Gdx.files.internal("ui//fail.png")));
+		winScreen=new Image(new Texture(Gdx.files.internal("ui//win.png")));
 		pauseScreen=new Image(new Texture(Gdx.files.internal("ui//pause.png")));
 		resumePNG=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//resume.png")));
 		resumeButton=new ImageButton(resumePNG);
-		resumeButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2+200);
+		quitPNG=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//quit.png")));
+		restartPNG=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//restart.png")));
+		restartButton=new ImageButton(restartPNG);
+		exitButton=new ImageButton(quitPNG);
 		notesList=map.getNotesIntList();
 		resumeButton.addListener(new ClickListener()
         {
@@ -152,6 +174,23 @@ public class GameScreen implements Screen, InputProcessor{
                 resume();
             }
         });
+		exitButton.addListener(new ClickListener()
+		{
+			public void clicked(InputEvent event, float x, float y)
+			{
+				dispose();
+				System.exit(1);
+				// GameScreen.this.game.setScreen(MainMenuScreen(GameScreen.this.game));
+			}
+		});
+		restartButton.addListener(new ClickListener()
+		{
+			public void clicked(InputEvent event, float x, float y)
+			{
+				System.out.println("restart button");
+				restart();
+			}
+		});
 		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
@@ -229,13 +268,47 @@ public class GameScreen implements Screen, InputProcessor{
 				}
 				else
 				{
-					//System.out.println("no note spawned");
 				}
 			}
-			//System.out.println();
 		}
 		mapPosition++;
 		lastDropTime = TimeUtils.nanoTime();
+	}
+
+	public void fail()
+	{
+		backingMusic.pause();
+		pauseGroup=new Group();
+		pauseGroup.addActor(failScreen);
+		exitButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2+70);
+		restartButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2-160);
+		pauseGroup.addActor(exitButton);
+		pauseGroup.addActor(restartButton);
+		stage.addActor(pauseGroup);
+	}
+
+	public void win()
+	{
+		backingMusic.pause();
+		pauseGroup=new Group();
+		pauseGroup.addActor(winScreen);
+		exitButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2+70);
+		restartButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2-160);
+		pauseGroup.addActor(exitButton);
+		pauseGroup.addActor(restartButton);
+		stage.addActor(pauseGroup);
+	}
+
+	public void restart()
+	{
+		gameState=0;
+		hpPos=0;
+		backingMusic.stop();
+		noteSpawnList=new ArrayList<>();
+		frameCounter=0;
+		mapPosition=0;
+		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//song.mp3"));
+		resume();
 	}
 
     @Override
@@ -246,23 +319,22 @@ public class GameScreen implements Screen, InputProcessor{
 			if(TimeUtils.nanoTime() - lastDropTime > BPMFrequency) spawnNote(); //spawner
 			if (frameCounter%60==0)	//loop to run every 60 frames or every 1 second
 			{
+				//hpPos-=100;
 				frameCounter=0;
 				durationLeft--;
 				getDurationString();
-				if (hpPos>-411)
-				{
-					// hpPos-=40;
-				}
+				
 			}
 		}
 		else if (hpPos<-411)
 		{
-			backingMusic.pause();
 			System.out.println("user died");
+			gameState=2;
 		}
-		else
+		else if (durationLeft<0)
 		{
-			//System.out.println("user won");
+			System.out.println("user won");
+			gameState=3;
 		}
     }
 
@@ -280,6 +352,7 @@ public class GameScreen implements Screen, InputProcessor{
 		stage.getBatch().draw(boxImg,box2.x,box2.y,box2.width,box2.height);
 		stage.getBatch().draw(boxImg,box3.x,box3.y,box3.width,box3.height);
 		stage.getBatch().draw(boxImg,box4.x,box4.y,box4.width,box4.height);
+		//font.draw(stage.getBatch(), ""+combo, 100, 480);
 		for(Rectangle noteList: noteSpawnList) {  //spawns
 			stage.getBatch().draw(noteImg, noteList.x, noteList.y);
 		}
@@ -288,12 +361,24 @@ public class GameScreen implements Screen, InputProcessor{
 			Iterator<Rectangle> iter = noteSpawnList.iterator();
 			while (iter.hasNext()) {
 				Rectangle note = iter.next();
-				note.y -= 600 * Gdx.graphics.getDeltaTime();
+				note.y -= 800 * Gdx.graphics.getDeltaTime();
 				if (note.y + 90 < 0)
+				{
 					iter.remove();
+					hpPos-=10*Integer.parseInt(map.getDifficulty());
+					combo=0;
+				}
 				if (note.overlaps(box1)&&box1Active) {
 					combo++;
-					hitSound.play(0.5f);
+					if (hpPos<-(20/Integer.parseInt(map.getDifficulty())))
+					{
+						hpPos+=(20/Integer.parseInt(map.getDifficulty()));
+					}
+					else
+					{
+						hpPos=0;
+					}
+					//hitSound.play(0.2f);
 					iter.remove();
 					if (iter.hasNext())
 					{
@@ -303,8 +388,16 @@ public class GameScreen implements Screen, InputProcessor{
 				else if (note.overlaps(box2)&&box2Active)
 				{
 					combo++;
+					if (hpPos<-(20/Integer.parseInt(map.getDifficulty())))
+					{
+						hpPos+=(20/Integer.parseInt(map.getDifficulty()));
+					}
+					else
+					{
+						hpPos=0;
+					}
 					System.out.println("box2");
-					hitSound.play(0.5f);
+					//hitSound.play(0.2f);
 					iter.remove();
 					if (iter.hasNext())
 					{
@@ -314,8 +407,16 @@ public class GameScreen implements Screen, InputProcessor{
 				else if (note.overlaps(box3)&&box3Active)
 				{
 					combo++;
+					if (hpPos<-(20/Integer.parseInt(map.getDifficulty())))
+					{
+						hpPos+=(20/Integer.parseInt(map.getDifficulty()));
+					}
+					else
+					{
+						hpPos=0;
+					}
 					System.out.println("box3");
-					hitSound.play(0.5f);
+					//hitSound.play(0.2f);
 					iter.remove();
 					if (iter.hasNext())
 					{
@@ -325,18 +426,22 @@ public class GameScreen implements Screen, InputProcessor{
 				else if (note.overlaps(box4)&&box4Active)
 				{
 					combo++;
+					if (hpPos<-(20/Integer.parseInt(map.getDifficulty())))
+					{
+						hpPos+=(20/Integer.parseInt(map.getDifficulty()));
+					}
+					else
+					{
+						hpPos=0;
+					}
 					System.out.println("box4");
-					hitSound.play(0.5f);
+					//hitSound.play(0.2f);
 					iter.remove();
 					if (iter.hasNext())
 					{
 						iter.next();
 					}
 				}
-				// else 
-				// {
-				// 	//System.out.println("wtf");
-				// }
 			}
 		}
 		stage.getBatch().end();
@@ -351,7 +456,10 @@ public class GameScreen implements Screen, InputProcessor{
 				pause();
 				break;
 			case 2:
-				hide();
+				fail();
+				break;
+			case 3:
+				win();
 				break;
 		}
     }
@@ -370,25 +478,27 @@ public class GameScreen implements Screen, InputProcessor{
         backingMusic.pause();
 		pauseGroup=new Group();
 		pauseGroup.addActor(pauseScreen);
+		exitButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2-180);
+		restartButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2+10);
+		resumeButton.setPosition(Gdx.graphics.getWidth()/2+45, Gdx.graphics.getHeight()/2+200);
 		pauseGroup.addActor(resumeButton);
+		pauseGroup.addActor(exitButton);
+		pauseGroup.addActor(restartButton);
 		stage.addActor(pauseGroup);
 	}
 
     @Override
     public void resume() {
-		if (gameState==1)
-		{
-			gameState=0;
-			pauseGroup.remove();
-			show();
-		}
+		gameState=0;
+		pauseGroup.remove();
+		show();
     }
+
 
     @Override
     public void hide() {
         backingMusic.pause();
-		// game.setScreen(new MainMenuScreen(game));
-		// dispose();
+		dispose();
     }
 
     @Override
@@ -398,9 +508,9 @@ public class GameScreen implements Screen, InputProcessor{
 		hpBar.dispose();
         noteImg.dispose();
 		boxImg.dispose();
-        holdNoteImg1.dispose();
-        holdNoteImg2.dispose();
-        holdNoteImg3.dispose();
+        // holdNoteImg1.dispose();
+        // holdNoteImg2.dispose();
+        // holdNoteImg3.dispose();
 		backingMusic.dispose();
 		hitSound.dispose();
 		holdSound.dispose();

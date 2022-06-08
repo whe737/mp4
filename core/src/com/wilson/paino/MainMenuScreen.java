@@ -25,7 +25,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class MainMenuScreen extends Stage implements Screen {
 
     private boolean visible=true;
-	final Start game;
+	Start game;
 	private OrthographicCamera camera;
     private Table table;
     private Stage stage;
@@ -35,7 +35,7 @@ public class MainMenuScreen extends Stage implements Screen {
     ImageButton startButton;
     SpriteBatch batch;
 
-	public MainMenuScreen(final Start game) {
+	public MainMenuScreen(Start game) {
         
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 1920, 1030);
@@ -43,40 +43,6 @@ public class MainMenuScreen extends Stage implements Screen {
         stage=new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         batch=new SpriteBatch();
-
-        //table=new Table();
-        //table.setFillParent(true);
-        //stage.addActor(table);
-        //table.setDebug(true);
-        //Drawable startTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//play.png")));
-        //startButton=new ImageButton(startTexture);
-        //startButton.setTransform(true);
-        //startButton.setScale(0.7f);
-        //Drawable closeTexture=new TextureRegionDrawable(new Texture(Gdx.files.internal("ui//close.png")));
-        //closeButton=new ImageButton(closeTexture);
-        //closeButton.setTransform(true);
-        //closeButton.setScale(0.7f);
-        //startButton.setPosition(camera.position.x+250,camera.position.y+180);
-        //closeButton.setPosition(camera.position.x-830,camera.position.y-400);
-        //Gdx.input.setInputProcessor(stage);
-        //stage.addActor(startButton);
-        //stage.addActor(closeButton);
-        // startButton.addListener(new ClickListener(){
-        //     public void clicked(InputEvent event, float x, float y){
-        //             game.setScreen(new GameScreen(game));
-        //             dispose();
-        //         }
-        // });
-        // closeButton.addListener(new ClickListener()
-        // {
-        //     public void clicked(InputEvent event, float x, float y)
-        //     {
-        //         dispose();
-        //         game.dispose();
-        //         System.exit(1);
-        //     }
-        // });
-        
         bgTexture=new Texture(Gdx.files.internal("ui//start.png"));
         backgroundImg=new Image(bgTexture);
         

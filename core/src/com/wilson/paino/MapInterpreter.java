@@ -41,7 +41,7 @@ public class MapInterpreter
         for (int i=0;i<4;i++)
         {
             int position=0;
-            for (int j=0;j<words.get(3).length();j++)
+            for (int j=0;j<words.get(3).length()-1;j++)
             {
                 int temp=Integer.parseInt(words.get(i+3).substring(j,j+1));
                 notesIntList[position][i]=temp;

@@ -20,7 +20,7 @@ public class InputReader implements InputProcessor{
                 System.out.println("D was pressed");
                 GameScreen.box1Active=true;
                 long lastPressedD=TimeUtils.nanoTime();
-                if (GameScreen.box1Active&&TimeUtils.nanoTime()-lastPressedD>500)
+                if (GameScreen.box1Active&&TimeUtils.nanoTime()-lastPressedD>10000)
                 {
                     GameScreen.box1Active=false;
                 }
@@ -29,7 +29,7 @@ public class InputReader implements InputProcessor{
                 System.out.println("F was pressed");
                 GameScreen.box2Active=true;
                 long lastPressedF=TimeUtils.nanoTime();
-                if (GameScreen.box2Active&&TimeUtils.nanoTime()-lastPressedF>500)
+                if (GameScreen.box2Active&&TimeUtils.nanoTime()-lastPressedF>10000)
                 {
                     GameScreen.box2Active=false;
                 }
@@ -38,7 +38,7 @@ public class InputReader implements InputProcessor{
                 System.out.println("J was pressed");
                 GameScreen.box3Active=true;
                 long lastPressedJ=TimeUtils.nanoTime();
-                if (GameScreen.box3Active&&TimeUtils.nanoTime()-lastPressedJ>500)
+                if (GameScreen.box3Active&&TimeUtils.nanoTime()-lastPressedJ>10000)
                 {
                    GameScreen.box3Active=false;
                 }
@@ -47,7 +47,7 @@ public class InputReader implements InputProcessor{
                 System.out.println("K was pressed");
                 GameScreen.box4Active=true;
                 long lastPressedK=TimeUtils.nanoTime();
-                if (GameScreen.box4Active&&TimeUtils.nanoTime()-lastPressedK>500)
+                if (GameScreen.box4Active&&TimeUtils.nanoTime()-lastPressedK>10000)
                 {
                     GameScreen.box4Active=false;
                 }

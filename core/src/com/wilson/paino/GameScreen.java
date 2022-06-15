@@ -166,7 +166,7 @@ public class GameScreen implements Screen, InputProcessor{
 		sort(example4, 0, example4.size()-1);
 		System.out.println(example4);
 		//map interpreter
-		map=new MapInterpreter("map");
+		map = new MapInterpreter("map");
 		//initializing methods
 		initializeDuration();
 		noteSpawnList=new ArrayList<Rectangle>();
@@ -707,11 +707,19 @@ public class GameScreen implements Screen, InputProcessor{
         int right[] = new int[n2];
         for (int i = 0; i < n1; i++)
         {
+<<<<<<< HEAD
             left[i] = arr.get(l+i);
         }
         for (int j = 0; j < n2; ++j)
         {
             right[j] = arr.get(m + 1 + j);
+=======
+            left[i] = arr.get(l+1);
+        }
+        for (int j = 0; j < n2; ++j)
+        {
+            right[j] = arr.get(m+1+j);
+>>>>>>> 5fbcd2e26690b1b53899582986dc1c334079a941
         }
         int i = 0, j = 0, k = l;
         while (i < n1 && j < n2)

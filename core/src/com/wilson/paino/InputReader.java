@@ -15,6 +15,7 @@ public class InputReader implements InputProcessor{
         {
             case Keys.ESCAPE:
                 if (GameScreen.gameState==0) GameScreen.gameState=1;
+                //else if (GameScreen.gameState==1) GameScreen.gameState=0;
                 break;
             case Keys.D:
                 System.out.println("D was pressed");

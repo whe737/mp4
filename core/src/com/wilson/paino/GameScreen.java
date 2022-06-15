@@ -150,6 +150,21 @@ public class GameScreen implements Screen, InputProcessor{
 		holdSound=Gdx.audio.newSound(Gdx.files.internal("fx//hold.ogg"));
 		backingMusic=Gdx.audio.newMusic(Gdx.files.internal("songs//song.mp3"));
 		backingMusic.setVolume((float) 1);
+		System.out.println(repeatLettersIterative("example")); //demonstrates the congruence between iteration and recursion
+		System.out.println(repeatLettersRecursive("example")); //recursive method
+		int[] example={1,2,3,4,5,6};
+		System.out.println(multiplyBy2AndAddRecursive(example, example.length)); //recursive method with more than one base case and recursively traverse an array
+		ArrayList<Integer> example2=new ArrayList<Integer>();
+        example2.add(1); example2.add(2); example2.add(3); example2.add(4); example2.add(5); example2.add(6); 
+		printReverseListRecursive(example2); //recursively traverse an arraylist
+		int[] example3={213,1,2,13,2213,12,3,12,312,3,123,142,5647,5,2,435,42,659,56,85};
+		System.out.println(binarySearch(example3,0,example3.length-1,3)); //uses binary search
+		sort(example3,0,example3.length-1);
+		System.out.println(Arrays.toString(example3)); //sorts an array using merge sort
+		ArrayList<Integer> example4=new ArrayList<>();
+		example4.add(123); example4.add(34); example4.add(436); example4.add(445645); example4.add(5347); example4.add(62);
+		sort(example4, 0, example4.size()-1);
+		System.out.println(example4);
 		//map interpreter
 		map=new MapInterpreter("map");
 		//initializing methods
@@ -304,6 +319,7 @@ public class GameScreen implements Screen, InputProcessor{
 		gameState=0;
 		hpPos=0;
 		backingMusic.stop();
+		durationLeft=map.getDurationint();
 		noteSpawnList=new ArrayList<>();
 		frameCounter=0;
 		mapPosition=0;
@@ -503,6 +519,8 @@ public class GameScreen implements Screen, InputProcessor{
 
     @Override
     public void dispose() {
+		System.out.println("Duration left: "+durationLeft);
+		System.out.println("Map Position: "+mapPosition);
         batch.dispose();
 		bgImg.dispose();
 		hpBar.dispose();
@@ -563,4 +581,175 @@ public class GameScreen implements Screen, InputProcessor{
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	//requirements
+	public static String repeatLettersRecursive(String str) //recursive method
+    {
+        String output="";
+        if (str.length()>0)
+        {
+            output+=str.substring(0, 1);
+            output+=str.substring(0,1);
+            output+=repeatLettersRecursive(str.substring(1));
+        }
+        return output;
+    }
+	public static String repeatLettersIterative(String str) //Demonstrates the congruence between iteration and recursion.
+    {
+        String output="";
+        for (int i=0;i<str.length();i++)
+        {
+            output+=str.substring(i, i+1);
+            output+=str.substring(i,i+1);
+        }
+        return output;
+    }
+	public static int multiplyBy2AndAddRecursive(int[] arr,int index) //Recursively traverses an array.
+    {
+        int output=0;
+        if (index>0)
+        {
+            output+=arr[index-1]*2;
+            output+=multiplyBy2AndAddRecursive(arr, index-1);
+        }
+        return output;
+    }
+	public static void printReverseListRecursive(ArrayList<Integer> arr) //Recursively traverses an ArrayList.
+    {
+        ArrayList<Integer> arrCopy=new ArrayList<>();
+        for (Integer i:arr)
+        {
+            arrCopy.add(i);
+        }
+        if (arrCopy.size()>0)
+        {
+            System.out.println(arrCopy.remove(arrCopy.size()-1));
+            printReverseListRecursive(arrCopy);
+        }
+    }
+	public static int binarySearch(int[] arr, int min,int max, int toFind) //Uses binary search, calls a recursive method with more than one base case.
+    {
+        int middle=(min+max)/2;
+        if (min<=max)
+        {
+            if (arr[middle]==toFind)
+            {
+                return middle;
+            }
+            else if (arr[middle]>toFind)
+            {
+                return binarySearch(arr, min, middle-1, toFind);
+            }
+            else
+            {
+                return binarySearch(arr, middle+1, max, toFind);
+            }
+        }
+        return -1;
+    }
+	public static void merge(int arr[], int l, int m, int r)
+    {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        int left[] = new int[n1];
+        int right[] = new int[n2];
+        for (int i = 0; i < n1; i++)
+        {
+            left[i] = arr[l + i];
+        }
+        for (int j = 0; j < n2; ++j)
+        {
+            right[j] = arr[m + 1 + j];
+        }
+        int i = 0, j = 0, k = l;
+        while (i < n1 && j < n2)
+        {
+        if (left[i] <= right[j])
+        {
+            arr[k] = left[i];
+            i++;
+        }
+        else
+        {
+            arr[k] = right[j];
+            j++;
+        }
+        k++;
+        }
+        while (i < n1)
+        {
+            arr[k] = left[i];
+            i++;
+            k++;
+        }
+        while (j < n2)
+        {
+            arr[k] = right[j];
+            j++;
+            k++;
+        }
+    }
+    public static void sort(int arr[], int l, int r) //Sorts an array using merge sort.
+    {
+        if (l < r) 
+        {
+            int m =(l + r)/2;
+            sort(arr, l, m);
+            sort(arr, m + 1, r);
+            merge(arr, l, m, r);
+        }
+    }
+	public static void merge(ArrayList<Integer> arr, int l, int m, int r)
+    {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        int left[] = new int[n1];
+        int right[] = new int[n2];
+        for (int i = 0; i < n1; i++)
+        {
+            left[i] = arr.get(l+i);
+        }
+        for (int j = 0; j < n2; ++j)
+        {
+            right[j] = arr.get(m + 1 + j);
+        }
+        int i = 0, j = 0, k = l;
+        while (i < n1 && j < n2)
+        {
+        if (left[i] <= right[j])
+        {
+            arr.set(k,left[i]);
+            i++;
+        }
+        else
+        {
+            arr.set(k, right[j]); 
+            j++;
+        }
+        k++;
+        }
+        while (i < n1)
+        {
+            arr.set(k, left[i]);
+            i++;
+            k++;
+        }
+        while (j < n2)
+        {
+            arr.set(k, right[j]);
+            j++;
+            k++;
+        }
+    }
+    public static void sort(ArrayList<Integer> arr, int l, int r) //Sorts an ArrayList using merge sort.
+    {
+        if (l < r) 
+        {
+            int m =(l + r)/2;
+            sort(arr, l, m);
+            sort(arr, m + 1, r);
+            merge(arr, l, m, r);
+        }
+    }
+	
 }
